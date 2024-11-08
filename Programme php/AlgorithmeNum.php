@@ -2,7 +2,7 @@
 // Importation des bibliothèques nécessaires
 // PHP n'a pas d'équivalent direct à SymPy, donc les fonctions mathématiques seront manipulées différemment
 require 'MethodeDeResolution.php';
-require 'AccueilEtMenus.php';
+require 'AcccueilEtMenus.php';
 
 // Fonction principale pour gérer le menu et les choix de l'utilisateur
 function main() {
