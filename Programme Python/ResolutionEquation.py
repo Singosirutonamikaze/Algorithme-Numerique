@@ -1,153 +1,29 @@
-import math
-import sys
+# Importation des modules
 from sympy import symbols, sympify, lambdify
+from MethodeDeResolution import methode_de_dichotomie 
+from MethodeDeResolution import methode_de_la_secante
+from MethodeDeResolution import methode_de_newton_raphson
+from MethodeDeResolution import methode_du_point_fixe
+from AccueilEtMenus import rectangle_bienvenue_complexe
+from AccueilEtMenus import methode_resolution
+from AccueilEtMenus import saisir_fonction
 
-# Fonction pour la méthode de dichotomie
-def methode_de_dichotomie(fonction, borne_inferieure, borne_superieure, tolerance, nombre_max_iterations):
-    # On évalue la fonction f à la borne inférieure
-    valeur_borne_inferieure = fonction(borne_inferieure)
-
-    # Si f(a) est proche de 0, a est la racine
-    if (math.fabs(valeur_borne_inferieure) <= tolerance):
-        return borne_inferieure
-
-    # On évalue la fonction f à la borne supérieure
-    valeur_borne_superieure = fonction(borne_superieure)
-
-    # Si f(b) est proche de 0, b est la racine
-    if (math.fabs(valeur_borne_superieure) <= tolerance):
-        return borne_superieure
-
-    # Vérifie si la fonction a une racine entre a et b
-    if (valeur_borne_inferieure * valeur_borne_superieure > 0.0):
-        print("La racine n'est pas encadrée entre [", borne_inferieure, ";", borne_superieure, "]")
-        sys.exit(0)
-
-    # Calcul du nombre maximum d'itérations nécessaires
-    nombre_iterations = int(math.ceil(math.log(math.fabs(borne_superieure - borne_inferieure) / tolerance) / math.log(2.0)))
-
-    # On effectue la dichotomie
-    for _ in range(min(nombre_iterations + 1, nombre_max_iterations)):
-        point_milieu = (borne_inferieure + borne_superieure) * 0.5  # Point milieu
-        valeur_point_milieu = fonction(point_milieu)  # Valeur de f au point milieu
-
-        # Si f(c) est proche de 0, c est la racine
-        if (valeur_point_milieu == 0.0 or (borne_superieure - borne_inferieure) < tolerance):
-            return point_milieu
-
-        # Mise à jour des bornes a ou b selon le signe de f(c)
-        if (valeur_point_milieu * valeur_borne_superieure < 0.0):
-            borne_inferieure = point_milieu
-            valeur_borne_inferieure = valeur_point_milieu
-        else:
-            borne_superieure = point_milieu
-            valeur_borne_superieure = valeur_point_milieu
-
-    # Retourne la moyenne des bornes a et b comme approximation de la racine
-    return (borne_inferieure + borne_superieure) * 0.5
-
-
-# Fonction pour la méthode de la sécante
-def methode_de_la_secante(fonction, borne_inferieure, borne_superieure, tolerance, nombre_max_iterations):
-    # Évaluation de la fonction à la borne inférieure
-    valeur_borne_inferieure = fonction(borne_inferieure)
-
-    # Si f(a) est proche de 0, a est la racine
-    if (math.fabs(valeur_borne_inferieure) <= tolerance):
-        return borne_inferieure
-
-    # Évaluation de la fonction à la borne supérieure
-    valeur_borne_superieure = fonction(borne_superieure)
-
-    # Si f(b) est proche de 0, b est la racine
-    if (math.fabs(valeur_borne_superieure) <= tolerance):
-        return borne_superieure
-
-    # Vérification que la racine est bien encadrée
-    if (valeur_borne_inferieure * valeur_borne_superieure > 0.0):
-        print("La racine n'est pas encadrée entre [", borne_inferieure, ";", borne_superieure, "]")
-        sys.exit(0)
-
-    compteur_iterations = 0
-    # La méthode de la sécante s'applique en itérant jusqu'à ce que la tolérance soit atteinte
-    while ((math.fabs(borne_superieure - borne_inferieure) > tolerance or math.fabs(valeur_borne_superieure) > tolerance) and (compteur_iterations < nombre_max_iterations)):
-        compteur_iterations += 1
-        estimation = borne_inferieure - valeur_borne_inferieure * (borne_superieure - borne_inferieure) / (valeur_borne_superieure - valeur_borne_inferieure)
-        valeur_estimation = fonction(estimation)
-
-        # Si f(estimation) est proche de 0, on retourne l'estimation
-        if (math.fabs(valeur_estimation) <= tolerance):
-            return estimation
-
-        # Mise à jour des bornes en fonction du signe de f(estimation)
-        if (valeur_estimation * valeur_borne_superieure < 0.0):
-            borne_inferieure = estimation
-            valeur_borne_inferieure = valeur_estimation
-        else:
-            borne_superieure = estimation
-            valeur_borne_superieure = valeur_estimation
-
-    # Retourne l'estimation à partir de la méthode de la sécante
-    return (borne_inferieure - valeur_borne_inferieure * (borne_superieure - borne_inferieure) / (valeur_borne_superieure - valeur_borne_inferieure))
-
-
-# Fonction pour la méthode de Newton
-def methode_de_newton(fonction, derivee_fonction, x_initiale, tolerance, nombre_max_iterations):
-    compteur_iterations = 0
-    x = x_initiale
-    valeur_x = fonction(x)
-
-    # La méthode de Newton itère jusqu'à convergence ou dépassement des itérations maximales
-    while ((math.fabs(valeur_x) > tolerance) and (compteur_iterations < nombre_max_iterations)):
-        valeur_derivee_x = derivee_fonction(x)
-
-        # Si la dérivée est nulle, la méthode échoue
-        if (valeur_derivee_x == 0):
-            print("Dérivée nulle. Méthode de Newton échoue.")
-            return None
-
-        x = x - valeur_x / valeur_derivee_x
-        valeur_x = fonction(x)
-        compteur_iterations += 1
-
-    if (compteur_iterations == nombre_max_iterations):
-        print("Pas de convergence avec la méthode de Newton.")
-        return None
-    else:
-        return x
-
-
-# Fonction pour la méthode du point fixe
-def methode_du_point_fixe(phi, x_initiale, tolerance, nombre_max_iterations):
-    compteur_iterations = 0
-    x = x_initiale
-
-    # Itère jusqu'à ce que la différence entre x et phi(x) soit inférieure à la tolérance
-    while ((math.fabs(phi(x) - x) > tolerance) and (compteur_iterations < nombre_max_iterations)):
-        x = phi(x)
-        compteur_iterations += 1
-
-    # Vérification de la convergence
-    if (compteur_iterations == nombre_max_iterations):
-        print("Pas de convergence avec la méthode du point fixe.\n")
-        return None
-    else:
-        return x
-
+#Implementation de la x
+x = symbols('x')
 
 # Menu pour choisir la méthode et tester les fonctions
 def main():
     choix_recommencer_Terminer = ""
     action = True
 
+    #Presentation du programme
+    rectangle_bienvenue_complexe()
+
     # Boucle principale pour recommencer ou terminer
     while action:
 
-        print("Choisissez la méthode de résolution :")
-        print("1. La méthode de Dichotomie")
-        print("2. La méthode de la Sécante")  
-        print("3. La méthode de Newton")
-        print("4. La méthode du Point Fixe\n")
+        # Affichage du menu principal
+        methode_resolution()
 
         # Boucle pour s'assurer que l'utilisateur saisit un entier valide entre 1 et 4
         while True:
@@ -162,55 +38,74 @@ def main():
 
         # Affichage du choix de l'utilisateur
         print(f"Vous avez choisi la méthode numéro {choix}.\n")
+        if (choix == 1):
+            print("***************METHODE DE DICHOTOMIE***************\n")
+        elif (choix == 2):
+           print("***************METHODE DE LA SECANTE***************\n")
+        elif choix == 3:
+           print("***************METHODE DE NEWTON-RAPHSON***************\n")
+        elif (choix == 4):
+           print("***************METHODE DU POINT FIXE***************\n")
+        else:
+            print("votre choix est incorrecte.")
 
-        x = symbols('x')
-        fonction_str = input("Entrez la fonction en termes de x (ex: x**2 - 2) : f(x) = ")
-
-        try:
-            fonction_expr = sympify(fonction_str)
-            print("Fonction interprétée : f(x) = ", fonction_expr)
-        except Exception as e:
-            print("Il faut que fonction soit une fonction mathématique.", e)
-            continue
-
-        fonction = lambdify(x, fonction_expr, 'math')
         
+        while True:
+            fonction_str = saisir_fonction()
+
+            try:
+                fonction_expr = sympify(fonction_str)
+                print("Fonction interprétée : f(x) = ", fonction_expr)
+                fonction = lambdify(x, fonction_expr, 'math')
+                break
+            except Exception as e:
+                print("Il faut que fonction soit une fonction mathématique.", e)
+                # Permettre a l'utilisateur de recommencer
+                continue
+
         # Vérifie si le choix nécessite des bornes (Méthode de la Dichotomie ou de la Sécante)
-        if (choix in [1, 2]):
-            while True:
+        if (choix in [1, 2]):  # Vérifie si le choix est 1 ou 2
+            while True:  # Boucle infinie pour continuer à demander jusqu'à ce que l'entrée soit valide
                 try:
-                    borne_inferieure = float(input("Entrez la borne inférieure de l'intervalle : "))
-                    borne_superieure = float(input("Entrez la borne supérieure de l'intervalle : "))
-                    pas = float(input("Entrez le pas de balayage : "))
-                    
+                    # Demander à l'utilisateur de saisir la borne inférieure et supérieure
+                    try:
+                        borne_inferieure = float(input("Entrez la borne inférieure de l'intervalle : "))  # Saisie de la borne inférieure
+                        borne_superieure = float(input("Entrez la borne supérieure de l'intervalle : "))  # Saisie de la borne supérieure
+                    except ValueError:
+                        # Si l'utilisateur entre une valeur qui ne peut pas être convertie en float
+                        print("Veuillez entrer un nombre entier ou réel (Exemple : 2 ou 2.56)")
+
+                    # Vérifier que la borne inférieure est bien inférieure à la borne supérieure
                     if (borne_inferieure < borne_superieure):
-                        #Présentation de l'intervalle
-                        print(f"Votre intervalle est : [{borne_inferieure}; {borne_superieure}]")
-                        break
+                        break  # Si la condition est remplie, sortir de la boucle
                     else:
+                        # Si la borne inférieure est supérieure ou égale à la borne supérieure
                         print("Erreur : la borne inférieure doit être inférieure à la borne supérieure.")
 
-                    # Balayage de l'intervalle
-                    x = borne_inferieure
-                    while (x <= borne_superieure):
-                        print(f"f({x}) = {fonction(x)}")
-                        x += pas
-
                 except ValueError:
-                    print("Erreur : veuillez entrer un nombre réel.")
+                    # Si une erreur se produit lors de la conversion en float
+                    print("Erreur : veuillez entrer un nombre réel pour chaque borne.")
+            
+            # Présentation de l'intervalle une fois les entrées validées
+            print(f"Votre intervalle est : [{borne_inferieure}; {borne_superieure}]")
 
         # Définir la tolérance et le nombre maximal d'itérations
         while True:
             try:
-                tolerance = float(input("Entrez la tolérance souhaitée : "))
-                nombre_max_iterations = int(input("Entrez le nombre maximal d'itérations : "))
+                tolerance = float(input("Entrez la tolérance souhaitée (ex: 0.0001 ou 1.0e-5 ou 1Oe-6 ou 10^-6) : \n"))
+                nombre_max_iterations = int(input("Entrez le nombre maximal d'itérations (ex: 100) : \n"))
                 
                 if (tolerance > 0 and nombre_max_iterations > 0):
                     break
                 else:
                     print("Erreur : les valeurs de tolérance et d'itérations doivent être supérieures à zéro.")
+
             except ValueError:
                 print("Erreur : veuillez entrer des valeurs numériques pour la tolérance et un entier pour les itérations.")
+            
+            #Présentation de la tolérance et du nombre maximal d'itérations
+            print(f"Votre tolérance est : {tolerance}\n")
+            print(f"Votre nombre maximal d'itérations est : {nombre_max_iterations}\n")
         
         # Exécution de la méthode choisie par l'utilisateur
         if (choix == 1):
@@ -219,15 +114,12 @@ def main():
             racine = methode_de_la_secante(fonction, borne_inferieure, borne_superieure, tolerance, nombre_max_iterations)
         elif choix == 3:
             derivee_fonction = lambdify(x, fonction_expr.diff(x), 'math')
-            x_initiale = float(input("Entrez une estimation initiale de la racine : "))
-            racine = methode_de_newton(fonction, derivee_fonction, x_initiale, tolerance, nombre_max_iterations)
+            x_initiale = float(input("Entrez une estimation initiale de la racine (exemple: 2): Xo = "))
+            racine = methode_de_newton_raphson(fonction, derivee_fonction, x_initiale, tolerance, nombre_max_iterations)
         elif (choix == 4):
-            phi_str = input("Entrez la fonction de point fixe (ex: sqrt(2+x)) : ")
             try:
-                phi_expr = sympify(phi_str)
-                phi = lambdify(x, phi_expr, 'math')
-                x_initiale = float(input("Entrez une estimation initiale de la racine : "))
-                racine = methode_du_point_fixe(phi, x_initiale, tolerance, nombre_max_iterations)
+                x_initiale = float(input("Entrez une estimation initiale de la racine  (exemple: 2): Xo = "))
+                racine = methode_du_point_fixe(fonction, x_initiale, tolerance, nombre_max_iterations)
             except Exception as e:
                 print("Erreur dans l'entrée de la fonction : ", e)
                 continue
@@ -241,7 +133,9 @@ def main():
         # Demande à l'utilisateur s'il veut recommencer ou quitter
         choix_recommencer_Terminer = input("Souhaitez-vous recommencer ? (oui/non) : \n").lower()
 
-        if choix_recommencer_Terminer == "non":
+        if (choix_recommencer_Terminer == "oui"):
+            action = True
+        else:
             action = False
 
 # Appel de la fonction principale
