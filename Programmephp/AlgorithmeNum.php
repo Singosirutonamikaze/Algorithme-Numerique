@@ -1,7 +1,7 @@
 <?php
 // Importation des fichiers nécessaires pour les méthodes de résolution et les fonctions d'accueil/menus.
-require 'MethodeDeResolution.php';
-require 'AccueilEtMenus.php'; // correction du nom du fichier
+include '/../includes/MethodeDeResolution.php';
+include '/../includes/AccueilEtMenus.php'; // correction du nom du fichier
 
 // Fonction principale pour gérer le menu et les choix de l'utilisateur
 function main() {
