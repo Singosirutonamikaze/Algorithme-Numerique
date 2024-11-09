@@ -1,87 +1,90 @@
 <?php
-// Importation des bibliothèques nécessaires
-// PHP n'a pas d'équivalent direct à SymPy, donc les fonctions mathématiques seront manipulées différemment
+// Importation des fichiers nécessaires pour les méthodes de résolution et les fonctions d'accueil/menus.
 require 'MethodeDeResolution.php';
-require 'AcccueilEtMenus.php';
+require 'AccueilEtMenus.php'; // correction du nom du fichier
 
 // Fonction principale pour gérer le menu et les choix de l'utilisateur
 function main() {
+    // Initialisation de la variable pour contrôler si l'utilisateur veut continuer ou non.
     $choix_recommencer_Terminer = "";
     $action = true;
 
-    // Appel de la fonction pour afficher le message de bienvenue
+    // Appel de la fonction pour afficher un message de bienvenue complexe avec une bordure.
     rectangle_bienvenue_complexe();
 
-    // Boucle principale pour permettre à l'utilisateur de recommencer ou terminer
+    // Boucle principale permettant à l'utilisateur de recommencer l'opération ou de quitter.
     while ($action) {
-        // Affichage du menu principal
+        // Affichage du menu principal contenant les différentes méthodes de résolution.
         methode_resolution();
 
-        // Boucle pour s'assurer que l'utilisateur entre un entier valide entre 1 et 4
+        // Boucle pour garantir que l'utilisateur entre un choix valide (1 à 4).
         while (true) {
             $choix = readline("Entrez le numéro de la méthode (1-4) : ");
-            $choix = intval($choix);
+            $choix = intval($choix); // Conversion en entier pour s'assurer que l'entrée est un nombre
 
+            // Vérification de la validité du choix
             if ($choix < 1 || $choix > 4) {
                 echo "Erreur : le numéro doit être un entier compris entre 1 et 4.\n";
             } else {
-                break;
+                break; // Sortie de la boucle si le choix est valide
             }
         }
 
-        // Affichage du choix de l'utilisateur
+        // Affichage de la méthode choisie par l'utilisateur
         echo "Vous avez choisi la méthode numéro $choix.\n";
         switch ($choix) {
             case 1:
-                echo "***************METHODE DE DICHOTOMIE***************\n";
+                echo "***************MÉTHODE DE DICHOTOMIE***************\n";
                 break;
             case 2:
-                echo "***************METHODE DE LA SECANTE***************\n";
+                echo "***************MÉTHODE DE LA SECANTE***************\n";
                 break;
             case 3:
-                echo "***************METHODE DE NEWTON-RAPHSON***************\n";
+                echo "***************MÉTHODE DE NEWTON-RAPHSON***************\n";
                 break;
             case 4:
-                echo "***************METHODE DU POINT FIXE***************\n";
+                echo "***************MÉTHODE DU POINT FIXE***************\n";
                 break;
         }
 
-        // Saisie de la fonction mathématique par l'utilisateur
+        // Saisie de la fonction mathématique par l'utilisateur sous forme de chaîne de caractères
         $fonction_str = saisir_fonction();
+        $fonction = create_function_from_string($fonction_str); // Conversion en fonction exécutable
 
-        // Conversion de la chaîne de fonction en une fonction évaluable
-        $fonction = create_function_from_string($fonction_str);
-
-        // Vérifie si le choix de méthode nécessite des bornes (Méthode de la Dichotomie ou de la Sécante)
+        // Vérification si la méthode choisie nécessite des bornes d'intervalle
         if (in_array($choix, [1, 2])) {
+            // Boucle pour garantir des bornes d'intervalle valides
             while (true) {
                 $borne_inferieure = readline("Entrez la borne inférieure de l'intervalle : ");
                 $borne_superieure = readline("Entrez la borne supérieure de l'intervalle : ");
 
+                // Vérification que les bornes sont bien des nombres et que la borne inférieure est plus petite
                 if (is_numeric($borne_inferieure) && is_numeric($borne_superieure) && $borne_inferieure < $borne_superieure) {
-                    break;
+                    break; // Sortie de la boucle si les bornes sont valides
                 } else {
-                    echo "Erreur : veuillez entrer des nombres valides pour les bornes et assurez-vous que la borne inférieure est inférieure à la borne supérieure.\n";
+                    echo "Erreur : Veuillez entrer des nombres valides pour les bornes.\n";
                 }
             }
             echo "Votre intervalle est : [$borne_inferieure, $borne_superieure]\n";
         }
 
-        // Définir la tolérance et le nombre maximal d'itérations
+        // Saisie de la tolérance et du nombre maximal d'itérations pour la méthode choisie
         while (true) {
             $tolerance = readline("Entrez la tolérance souhaitée (ex: 0.0001) : ");
             $nombre_max_iterations = readline("Entrez le nombre maximal d'itérations (ex: 100) : ");
 
+            // Vérification que la tolérance et le nombre d'itérations sont valides et positifs
             if (is_numeric($tolerance) && $tolerance > 0 && is_numeric($nombre_max_iterations) && $nombre_max_iterations > 0) {
-                break;
+                break; // Sortie de la boucle si les valeurs sont valides
             } else {
                 echo "Erreur : les valeurs de tolérance et d'itérations doivent être supérieures à zéro.\n";
             }
         }
-        echo "Votre tolérance est : $tolerance\n";
-        echo "Votre nombre maximal d'itérations est : $nombre_max_iterations\n";
 
-        // Exécution de la méthode choisie par l'utilisateur
+        // Affichage des paramètres saisis pour la résolution
+        echo "Tolérance : $tolerance, Nombre maximal d'itérations : $nombre_max_iterations\n";
+
+        // Exécution de la méthode choisie en fonction du choix de l'utilisateur
         $racine = null;
         switch ($choix) {
             case 1:
@@ -91,40 +94,44 @@ function main() {
                 $racine = methode_de_la_secante($fonction, $borne_inferieure, $borne_superieure, $tolerance, $nombre_max_iterations);
                 break;
             case 3:
+                // Pour la méthode de Newton-Raphson, une estimation initiale est demandée
                 $x_initiale = readline("Entrez une estimation initiale de la racine : ");
-                $racine = methode_de_newton_raphson($fonction, $x_initiale, $tolerance, $nombre_max_iterations);
+                $derivee_fonction_str = readline("Entrez la dérivée de la fonction : ");
+                $derivee_fonction = create_function_from_string($derivee_fonction_str);
+                $racine = methode_de_newton_raphson($fonction, $derivee_fonction, $x_initiale, $tolerance, $nombre_max_iterations);
                 break;
             case 4:
+                // Pour la méthode du Point Fixe, une estimation initiale est également demandée
                 $x_initiale = readline("Entrez une estimation initiale de la racine : ");
                 $racine = methode_du_point_fixe($fonction, $x_initiale, $tolerance, $nombre_max_iterations);
                 break;
         }
 
-        // Affichage de la racine trouvée
+        // Affichage de la racine trouvée ou d'un message si aucune racine n'a été trouvée
         if ($racine !== null) {
             echo "La racine trouvée est : $racine\n";
         } else {
             echo "Aucune racine n'a été trouvée.\n";
         }
 
-        // Demande à l'utilisateur s'il veut recommencer ou quitter
+        // Demande à l'utilisateur s'il souhaite recommencer ou terminer
         $choix_recommencer_Terminer = strtolower(readline("Souhaitez-vous recommencer ? (oui/non) : "));
-        $action = ($choix_recommencer_Terminer === "oui");
+        $action = ($choix_recommencer_Terminer === "oui"); // Continue si "oui", termine si "non"
     }
 }
 
-// Fonction pour convertir une chaîne de caractères en une fonction exécutable
+// Fonction pour créer une fonction exécutable à partir d'une chaîne de caractères
 function create_function_from_string($fonction_str) {
-    // Remplacer les exposants par PHP pow() et autres conversions si nécessaire
-    // Par exemple : x**2 -> pow(x,2)
+    // Remplacement de l'opérateur exponentiel ** par ^ pour compatibilité
     $fonction_str = str_replace("**", "^", $fonction_str);
-    // Retourner une fonction anonyme
     return function($x) use ($fonction_str) {
-        // Evaluer l'expression
-        eval('$result = ' . $fonction_str . ';');
+        $result = null; // Define the variable $result
+        eval($result .'='. $fonction_str . ';'); // Exécution de la fonction avec eval()
+
         return $result;
     };
 }
 
-// Appel de la fonction principale
+// Appel de la fonction principale pour démarrer le programme
 main();
+
