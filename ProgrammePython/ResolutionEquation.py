@@ -1,142 +1,110 @@
-# Importation des modules
+# Importation des modules nécessaires pour le calcul symbolique et les méthodes de résolution
 from sympy import symbols, sympify, lambdify
-from MethodeDeResolution import methode_de_dichotomie 
-from MethodeDeResolution import methode_de_la_secante
-from MethodeDeResolution import methode_de_newton_raphson
-from MethodeDeResolution import methode_du_point_fixe
-from AccueilEtMenus import rectangle_bienvenue_complexe
-from AccueilEtMenus import methode_resolution
-from AccueilEtMenus import saisir_fonction
+from MethodeDeResolution import methode_de_dichotomie, methode_de_la_secante, methode_de_newton_raphson, methode_du_point_fixe
+from AccueilEtMenus import rectangle_bienvenue_complexe, methode_resolution, saisir_fonction, saisir_tolerance_et_iterations
 
-#Implementation de la x
+# Définition du symbole 'x' qui sera utilisé dans les fonctions mathématiques
 x = symbols('x')
 
-# Menu pour choisir la méthode et tester les fonctions
-def main():
-    choix_recommencer_Terminer = ""
-    action = True
+def demander_bornes():
+    """Demande à l'utilisateur de saisir les bornes inférieure et supérieure de l'intervalle."""
+    while True:  # Boucle infinie pour continuer à demander tant que l'utilisateur ne donne pas de valeurs valides
+        try:
+            # Demander la saisie des bornes de l'intervalle
+            borne_inferieure = float(input("Entrez la borne inférieure de l'intervalle : "))
+            borne_superieure = float(input("Entrez la borne supérieure de l'intervalle : "))
+            
+            # Vérifier que la borne inférieure est bien inférieure à la borne supérieure
+            if borne_inferieure < borne_superieure:
+                return borne_inferieure, borne_superieure  # Si les bornes sont valides, les retourner
+            else:
+                print("Erreur : la borne inférieure doit être inférieure à la borne supérieure.")
+        except ValueError:
+            print("Erreur : veuillez entrer un nombre réel valide pour chaque borne.")  # Gérer les erreurs de conversion
 
-    #Presentation du programme
+def main():
+    action = True  # Variable pour contrôler si l'utilisateur souhaite recommencer ou quitter
+
+    # Présentation du programme
     rectangle_bienvenue_complexe()
 
     # Boucle principale pour recommencer ou terminer
     while action:
-
-        # Affichage du menu principal
+        # Affichage du menu principal pour choisir la méthode de résolution
         methode_resolution()
 
-        # Boucle pour s'assurer que l'utilisateur saisit un entier valide entre 1 et 4
+        # Boucle pour s'assurer que l'utilisateur saisit un entier valide entre 1 et 4 pour choisir la méthode
         while True:
             try:
-                choix = int(input("Entrez le numéro de la méthode (1-4) : "))
-                if (choix < 1 or choix > 4):
-                    print("Erreur : le numéro doit être un entier compris entre 1 et 4.\n")
-                else:
+                choix = int(input("Entrez le numéro de la méthode (1-4) : "))  # Demander à l'utilisateur de choisir une méthode
+                if 1 <= choix <= 4:  # Vérifier que le choix est entre 1 et 4
                     break  # Sortir de la boucle si le choix est valide
+                else:
+                    print("Erreur : le numéro doit être un entier compris entre 1 et 4.\n")  # Si le choix n'est pas valide
             except ValueError:
-                print("Erreur : veuillez entrer un nombre entier.\n")
+                print("Erreur : veuillez entrer un nombre entier.\n")  # Si l'entrée n'est pas un entier
 
-        # Affichage du choix de l'utilisateur
-        print(f"Vous avez choisi la méthode numéro {choix}.\n")
-        if (choix == 1):
+        # Affichage de la méthode choisie
+        if choix == 1:
             print("***************METHODE DE DICHOTOMIE***************\n")
-        elif (choix == 2):
-           print("***************METHODE DE LA SECANTE***************\n")
+        elif choix == 2:
+            print("***************METHODE DE LA SECANTE***************\n")
         elif choix == 3:
-           print("***************METHODE DE NEWTON-RAPHSON***************\n")
-        elif (choix == 4):
-           print("***************METHODE DU POINT FIXE***************\n")
-        else:
-            print("votre choix est incorrecte.")
+            print("***************METHODE DE NEWTON-RAPHSON***************\n")
+        elif choix == 4:
+            print("***************METHODE DU POINT FIXE***************\n")
 
-        
-        while True:
-            fonction_str = saisir_fonction()
+        # Demander à l'utilisateur de saisir la fonction à résoudre
+        fonction_str = saisir_fonction()
+        try:
+            # Convertir la fonction sous forme de chaîne en une expression sympy
+            fonction_expr = sympify(fonction_str)
+            fonction = lambdify(x, fonction_expr, 'math')  # Transformer la fonction sympy en fonction mathématique Python
+            print("Fonction interprétée : f(x) =", fonction_expr)  # Afficher la fonction interprétée
+        except Exception as e:
+            print(f"Erreur lors de l'interprétation de la fonction : {e}")  # Si la fonction est invalide, afficher l'erreur
+            continue  # Demander à nouveau la fonction si une erreur survient
 
-            try:
-                fonction_expr = sympify(fonction_str)
-                print("Fonction interprétée : f(x) = ", fonction_expr)
-                fonction = lambdify(x, fonction_expr, 'math')
-                break
-            except Exception as e:
-                print("Il faut que fonction soit une fonction mathématique.", e)
-                # Permettre a l'utilisateur de recommencer
-                continue
-
-        # Vérifie si le choix nécessite des bornes (Méthode de la Dichotomie ou de la Sécante)
-        if (choix in [1, 2]):  # Vérifie si le choix est 1 ou 2
-            while True:  # Boucle infinie pour continuer à demander jusqu'à ce que l'entrée soit valide
-                try:
-                    # Demander à l'utilisateur de saisir la borne inférieure et supérieure
-                    try:
-                        borne_inferieure = float(input("Entrez la borne inférieure de l'intervalle : "))  # Saisie de la borne inférieure
-                        borne_superieure = float(input("Entrez la borne supérieure de l'intervalle : "))  # Saisie de la borne supérieure
-                    except ValueError:
-                        # Si l'utilisateur entre une valeur qui ne peut pas être convertie en float
-                        print("Veuillez entrer un nombre entier ou réel (Exemple : 2 ou 2.56)")
-
-                    # Vérifier que la borne inférieure est bien inférieure à la borne supérieure
-                    if (borne_inferieure < borne_superieure):
-                        break  # Si la condition est remplie, sortir de la boucle
-                    else:
-                        # Si la borne inférieure est supérieure ou égale à la borne supérieure
-                        print("Erreur : la borne inférieure doit être inférieure à la borne supérieure.")
-
-                except ValueError:
-                    # Si une erreur se produit lors de la conversion en float
-                    print("Erreur : veuillez entrer un nombre réel pour chaque borne.")
-            
-            # Présentation de l'intervalle une fois les entrées validées
-            print(f"Votre intervalle est : [{borne_inferieure}; {borne_superieure}]")
+        # Si la méthode choisie nécessite des bornes (Méthode de Dichotomie ou Sécante)
+        if choix in [1, 2]:  # Vérifier si le choix est 1 ou 2
+            borne_inferieure, borne_superieure = demander_bornes()  # Demander les bornes
+            print(f"Votre intervalle est : [{borne_inferieure}, {borne_superieure}]")  # Afficher l'intervalle choisi
 
         # Définir la tolérance et le nombre maximal d'itérations
-        while True:
-            try:
-                tolerance = float(input("Entrez la tolérance souhaitée (ex: 0.0001 ou 1.0e-5 ou 1Oe-6 ou 10^-6) : \n"))
-                nombre_max_iterations = int(input("Entrez le nombre maximal d'itérations (ex: 100) : \n"))
-                
-                if (tolerance > 0 and nombre_max_iterations > 0):
-                    break
-                else:
-                    print("Erreur : les valeurs de tolérance et d'itérations doivent être supérieures à zéro.")
+        tolerance, nombre_max_iterations = saisir_tolerance_et_iterations()  # Saisie de la tolérance et des itérations
 
-            except ValueError:
-                print("Erreur : veuillez entrer des valeurs numériques pour la tolérance et un entier pour les itérations.")
-            
-            #Présentation de la tolérance et du nombre maximal d'itérations
-            print(f"Votre tolérance est : {tolerance}\n")
-            print(f"Votre nombre maximal d'itérations est : {nombre_max_iterations}\n")
-        
         # Exécution de la méthode choisie par l'utilisateur
-        if (choix == 1):
+        racine = None  # Initialisation de la variable racine
+
+        if choix == 1:
+            # Exécution de la méthode de la dichotomie
             racine = methode_de_dichotomie(fonction, borne_inferieure, borne_superieure, tolerance, nombre_max_iterations)
-        elif (choix == 2):
+        elif choix == 2:
+            # Exécution de la méthode de la sécante
             racine = methode_de_la_secante(fonction, borne_inferieure, borne_superieure, tolerance, nombre_max_iterations)
         elif choix == 3:
-            derivee_fonction = lambdify(x, fonction_expr.diff(x), 'math')
-            x_initiale = float(input("Entrez une estimation initiale de la racine (exemple: 2): Xo = "))
+            # Exécution de la méthode de Newton-Raphson
+            derivee_fonction = lambdify(x, fonction_expr.diff(x), 'math')  # Calcul de la dérivée de la fonction
+            x_initiale = float(input("Entrez une estimation initiale de la racine (exemple: 2) : Xo = "))
             racine = methode_de_newton_raphson(fonction, derivee_fonction, x_initiale, tolerance, nombre_max_iterations)
-        elif (choix == 4):
-            try:
-                x_initiale = float(input("Entrez une estimation initiale de la racine  (exemple: 2): Xo = "))
-                racine = methode_du_point_fixe(fonction, x_initiale, tolerance, nombre_max_iterations)
-            except Exception as e:
-                print("Erreur dans l'entrée de la fonction : ", e)
-                continue
+        elif choix == 4:
+            # Exécution de la méthode du point fixe
+            x_initiale = float(input("Entrez une estimation initiale de la racine (exemple: 2) : Xo = "))
+            racine = methode_du_point_fixe(fonction, x_initiale, tolerance, nombre_max_iterations)
 
-        # Affichage de la racine
-        if (racine is not None):
-            print("La racine trouvée est : ", racine)
+        # Affichage de la racine trouvée
+        if racine is not None:
+            print(f"La racine trouvée est : {racine}")  # Afficher la racine si elle a été trouvée
         else:
-            print("Aucune racine n'a été trouvée.")
+            print("Aucune racine n'a été trouvée.")  # Si aucune racine n'a été trouvée
 
-        # Demande à l'utilisateur s'il veut recommencer ou quitter
-        choix_recommencer_Terminer = input("Souhaitez-vous recommencer ? (oui/non) : \n").lower()
-
-        if (choix_recommencer_Terminer == "oui"):
-            action = True
+        # Demander à l'utilisateur s'il veut recommencer ou quitter
+        choix_recommencer_Terminer = input("Souhaitez-vous recommencer ? (oui/non) : ").lower()
+        if choix_recommencer_Terminer == "oui":
+            action = True  # Continuer si l'utilisateur veut recommencer
         else:
-            action = False
+            action = False  # Quitter si l'utilisateur ne veut pas recommencer
 
-# Appel de la fonction principale
-main()
+# Appel de la fonction principale pour démarrer le programme
+if __name__ == "__main__":
+    main()  # Lancer le programme

@@ -1,4 +1,4 @@
-# Importation des modules
+# Algorithme-Numerique/Programme Python/MethodeDeResolution.py
 import math
 import sys
 
@@ -50,7 +50,6 @@ def methode_de_dichotomie(fonction, borne_inferieure, borne_superieure, toleranc
     # Retourne la moyenne des bornes a et b comme approximation de la racine
     return (borne_inferieure + borne_superieure) * 0.5
 
-
 # Fonction pour la méthode de la sécante
 def methode_de_la_secante(fonction, borne_inferieure, borne_superieure, tolerance, nombre_max_iterations):
     # Évaluation de la fonction à la borne inférieure
@@ -94,7 +93,6 @@ def methode_de_la_secante(fonction, borne_inferieure, borne_superieure, toleranc
     # Retourne l'estimation à partir de la méthode de la sécante
     return (borne_inferieure - valeur_borne_inferieure * (borne_superieure - borne_inferieure) / (valeur_borne_superieure - valeur_borne_inferieure))
 
-
 # Fonction pour la méthode de Newton
 def methode_de_newton_raphson(fonction, derivee_fonction, x_initiale, tolerance, nombre_max_iterations):
     compteur_iterations = 0
@@ -107,7 +105,7 @@ def methode_de_newton_raphson(fonction, derivee_fonction, x_initiale, tolerance,
 
         # Si la dérivée est nulle, la méthode échoue
         if (valeur_derivee_x == 0):
-            print("La dérivée nulle.L'impléméntation de la Méthode de Newton échoue.")
+            print("La dérivée est nulle. L'implémentation de la Méthode de Newton échoue.")
             return None
 
         x = x - valeur_x / valeur_derivee_x
@@ -119,7 +117,6 @@ def methode_de_newton_raphson(fonction, derivee_fonction, x_initiale, tolerance,
         return None
     else:
         return x
-
 
 # Fonction pour la méthode du point fixe
 def methode_du_point_fixe(phi, x_initiale, tolerance, nombre_max_iterations):
@@ -139,3 +136,13 @@ def methode_du_point_fixe(phi, x_initiale, tolerance, nombre_max_iterations):
         return x
 
 
+#  Amélioration: méthode de balayage pour la méthode de Newton
+def balayage_newton(fonction, derivee_fonction, borne_inferieure, borne_superieure, tolerance, nombre_max_iterations):
+    """Effectue un balayage pour chercher une valeur initiale qui converge mieux"""
+    valeurs_initiales = [borne_inferieure, (borne_inferieure + borne_superieure) / 2, borne_superieure]
+    for val_init in valeurs_initiales:
+        print(f"Essai de la méthode de Newton avec x_initiale = {val_init}")
+        solution = methode_de_newton_raphson(fonction, derivee_fonction, val_init, tolerance, nombre_max_iterations)
+        if solution is not None:
+            return solution
+    return None
